@@ -9,12 +9,12 @@ const app = express();
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 10 * 1024 * 1024,
+    fileSize: 15 * 1024 * 1024,
     files: 8,
   },
 });
 
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json({ limit: "15mb" }));
 app.use(express.static(__dirname));
 
 function requireApiKey() {
@@ -49,12 +49,60 @@ async function callOpenAI(input, instructions = "") {
   return data.output_text || data.output?.[0]?.content?.[0]?.text || "";
 }
 
+async function callOpenAIVisionForFile(file) {
+  requireApiKey();
+
+  const base64 = file.buffer.toString("base64");
+  const mimeType = file.mimetype || "application/octet-stream";
+  const dataUrl = `data:${mimeType};base64,${base64}`;
+
+  const response = await fetch("https://api.openai.com/v1/responses", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-4.1-mini",
+      input: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text:
+                "Extract all readable text from this document image or scanned certificate. Preserve names, dates, course codes, unit names, providers, results, issue dates and statement numbers. Return plain text only.",
+            },
+            {
+              type: "input_image",
+              image_url: dataUrl,
+            },
+          ],
+        },
+      ],
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    console.error("OpenAI vision error:", data);
+    throw new Error(data?.error?.message || "OpenAI vision request failed.");
+  }
+
+  return data.output_text || data.output?.[0]?.content?.[0]?.text || "";
+}
+
 function safeJsonParse(text, fallback) {
   try {
     return JSON.parse(text);
   } catch {
     return fallback;
   }
+}
+
+function looksTooShort(text) {
+  return !text || String(text).trim().length < 80;
 }
 
 app.post("/api/classify", async (req, res) => {
@@ -181,22 +229,38 @@ app.post("/api/parse-uploads", upload.array("files"), async (req, res) => {
       if (type.includes("text") || lowerName.endsWith(".txt")) {
         text = file.buffer.toString("utf8");
       } else if (type.includes("pdf") || lowerName.endsWith(".pdf")) {
-        const parsed = await pdfParse(file.buffer);
-        text = parsed.text || "";
+        try {
+          const parsed = await pdfParse(file.buffer);
+          text = parsed.text || "";
+        } catch {
+          text = "";
+        }
+
+        if (looksTooShort(text)) {
+          text = await callOpenAIVisionForFile(file);
+        }
       } else if (
         type.includes("wordprocessingml") ||
         lowerName.endsWith(".docx")
       ) {
         const parsed = await mammoth.extractRawText({ buffer: file.buffer });
         text = parsed.value || "";
+      } else if (
+        type.startsWith("image/") ||
+        lowerName.endsWith(".png") ||
+        lowerName.endsWith(".jpg") ||
+        lowerName.endsWith(".jpeg") ||
+        lowerName.endsWith(".webp")
+      ) {
+        text = await callOpenAIVisionForFile(file);
       } else {
         extractedParts.push(
-          `FILE: ${name}\nUnsupported file type. Upload TXT, PDF, or DOCX.`
+          `FILE: ${name}\nUnsupported file type. Upload TXT, PDF, DOCX, PNG, JPG, JPEG, or WEBP.`
         );
         continue;
       }
 
-      extractedParts.push(`FILE: ${name}\n${text.trim()}`);
+      extractedParts.push(`FILE: ${name}\n${String(text || "").trim()}`);
     }
 
     const evidenceText = extractedParts.join("\n\n").trim();
