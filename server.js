@@ -3,6 +3,15 @@ const path = require("path");
 
 const app = express();
 
+const multer = require("multer");
+const mammoth = require("mammoth");
+const pdfParse = require("pdf-parse");
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024, files: 8 },
+});
+
 app.use(express.json({ limit: "10mb" }));
 app.use(express.static(__dirname));
 
