@@ -56,6 +56,21 @@ async function callOpenAIVisionForFile(file) {
   const mimeType = file.mimetype || "application/octet-stream";
   const dataUrl = `data:${mimeType};base64,${base64}`;
 
+  const isPdf =
+    mimeType.includes("pdf") ||
+    (file.originalname || "").toLowerCase().endsWith(".pdf");
+
+  const fileContent = isPdf
+    ? {
+        type: "input_file",
+        filename: file.originalname || "uploaded.pdf",
+        file_data: dataUrl,
+      }
+    : {
+        type: "input_image",
+        image_url: dataUrl,
+      };
+
   const response = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: {
@@ -71,12 +86,9 @@ async function callOpenAIVisionForFile(file) {
             {
               type: "input_text",
               text:
-                "Extract all readable text from this document image or scanned certificate. Preserve names, dates, course codes, unit names, providers, results, issue dates and statement numbers. Return plain text only.",
+                "Extract all readable text from this document, scanned certificate, or image. Preserve names, dates, course codes, unit names, providers, results, issue dates and statement numbers. Return plain text only.",
             },
-            {
-              type: "input_image",
-              image_url: dataUrl,
-            },
+            fileContent,
           ],
         },
       ],
@@ -86,8 +98,8 @@ async function callOpenAIVisionForFile(file) {
   const data = await response.json();
 
   if (!response.ok) {
-    console.error("OpenAI vision error:", data);
-    throw new Error(data?.error?.message || "OpenAI vision request failed.");
+    console.error("OpenAI file/vision error:", data);
+    throw new Error(data?.error?.message || "OpenAI file extraction failed.");
   }
 
   return data.output_text || data.output?.[0]?.content?.[0]?.text || "";
