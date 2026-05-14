@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Allens Training — Trainer Currency Statement Generator (MVP)</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<header class="app-header">
+  <div class="header-left">
+    <h1>Allens Training — Trainer Currency Statement Generator</h1>
+    <p class="sub">Enter your details and supporting evidence to generate a currency statement</p>
+  </div>
+
+  <div class="header-center">
+    <img
+      src="/images/Allens_Training.png"
+      alt="Allens Training"
+      class="app-logo"
+    />
+  </div>
+
+  <div class="header-right">
+    <div class="pill">Local MVP</div>
+  </div>
+</header>
+
+<main class="layout">
+  <!-- LEFT: Global / routing -->
+  <section class="panel">
+    <h2>Start</h2>
+
+    <label class="field">
+      <span>First Name</span>
+      <input id="firstName" type="text" placeholder="e.g., Dave" />
+    </label>
+
+    <!-- NEW: Trainer status -->
+    <div class="card" style="margin-top: 12px;">
+      <h3 style="margin: 0 0 8px 0;">Trainer status</h3>
+      <p class="muted" style="margin: 0 0 10px 0;">
+        This helps tailor prompts and expectations (optional).
+      </p>
+
+      <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+        <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="radio" name="trainerStatus" id="trainerExisting" value="existing" />
+          <span>Existing trainer</span>
+        </label>
+
+        <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="radio" name="trainerStatus" id="trainerNew" value="new" />
+          <span>New trainer</span>
+        </label>
+      </div>
+    </div>
+
+    <label class="field">
+      <span>Describe the industry area, unit code(s) or course name(s)</span>
+      <small class="field-help">Maximum one industry per currency statement.</small>
+      <textarea id="industryUnitText" rows="5" placeholder="HLTID011, LVR, CPR, Working at Heights, Medication etc."></textarea>
+    </label>
+
+    <!-- NEW: Optional prompts to capture currency (past 12 months) -->
+    <div class="card" style="margin-top: 12px;">
+      <h3 style="margin: 0 0 8px 0;">Questions</h3>
+      <p class="muted" style="margin-top: 0;">
+        Details provided must relate to activities completed within the past 12 months and clearly show how you have stayed engaged with current workplace practice.
+        All fields below are optional — enter as much or as little as you have.
+      </p>
+
+      <label class="field">
+        <span>Relevant workplace roles held (past 12 months)</span>
+        <textarea id="promptWorkplaceRoles" rows="3" placeholder="Include role title, organisation, dates, and how it relates to the unit/course."></textarea>
+      </label>
+
+      <label class="field">
+        <span>Real-life incidents responded to related to this course type (past 12 months)</span>
+        <textarea id="promptRealLifeIncidents" rows="3" placeholder="E.g., first aid response, CPR/AED use, incident management, outcomes (no sensitive personal details)."></textarea>
+      </label>
+
+      <label class="field">
+        <span>Refresher training / professional development completed (past 12 months)</span>
+        <textarea id="promptPD" rows="3" placeholder="E.g., workshops, webinars, short courses, online learning, podcasts, mentoring, internal training."></textarea>
+      </label>
+
+      <label class="field">
+        <span>Trainer observations completed (past 12 months)</span>
+        <textarea id="promptObservations" rows="3" placeholder="E.g., peer observations, validation, shadowing, co-training, feedback received and applied."></textarea>
+      </label>
+
+      <label class="field">
+        <span>Industry events or conferences attended related to this unit</span>
+        <textarea id="promptEvents" rows="3" placeholder="Include event name, date, key learnings and how it relates to the unit/course."></textarea>
+      </label>
+
+      <label class="field">
+        <span>Industry publications, updates, or professional memberships and how they relate</span>
+        <textarea id="promptPublications" rows="3" placeholder="E.g., standards updates, association membership, newsletters, journals, safety alerts, regulatory updates."></textarea>
+      </label>
+    </div>
+
+    <h2>Evidence uploads (optional)</h2>
+
+    <!-- Resume upload -->
+    <div class="card">
+      <h3 style="margin: 0 0 8px 0;">Upload resume (optional)</h3>
+      <p class="muted" style="margin-top: 0;">
+        Works with TXT, PDF and Word docs for now (no image scanning yet).
+      </p>
+
+      <div class="file-row">
+        <label class="file-upload">
+          <input id="resumeFiles" type="file" multiple />
+          <span class="file-btn">Choose file</span>
+        </label>
+        <span id="resumeFileName" class="file-name muted"></span>
+      </div>
+
+      <div id="resumeSummary" class="muted"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Industry evidence upload -->
+    <div class="card">
+      <h3 style="margin: 0 0 8px 0;">Additional supporting evidence (optional)</h3>
+      <p class="muted" style="margin-top: 0;">
+        Upload any supporting evidence such as certificates, PD records, licences, workshop confirmations, observation notes, or other documents.
+        Works with TXT, PDF and Word docs for now (no image scanning yet).
+      </p>
+
+      <div class="file-row">
+        <label class="file-upload">
+          <input id="industryEvidenceFiles" type="file" multiple />
+          <span class="file-btn">Choose file</span>
+        </label>
+        <span id="industryEvidenceFileName" class="file-name muted"></span>
+      </div>
+
+      <div id="industryEvidenceSummary" class="muted"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="row">
+      <button id="routeBtn" class="primary">Next</button>
+      <button id="resetBtn" class="ghost">Reset</button>
+    </div>
+
+    <div id="routingCard" class="card hidden">
+      <h3>Routing</h3>
+      <div id="routingStatus" class="muted"></div>
+      <div id="clarifyWrap" class="hidden">
+        <p id="clarifyQuestion" class="clarify"></p>
+        <label class="field">
+          <span>Your answer</span>
+          <input id="clarifyAnswer" type="text" placeholder="Type your answer..." />
+        </label>
+        <button id="clarifySubmitBtn" class="primary">Submit</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+  </section>
+
+  <!-- RIGHT: Dynamic block -->
+  <section class="panel">
+    <div id="blockTitleWrap">
+      <h2 id="blockTitle">Block (not selected)</h2>
+      <p id="blockSubtitle" class="muted">Enter industry/unit text and click Next to load the correct block.</p>
+    </div>
+
+    <!-- Block 1.1 -->
+    <section id="block11" class="hidden">
+      <h3>Relevant industry employment (if applicable)</h3>
+      <p class="subnote">Roles relevant to this field. Training &amp; Assessing roles are not accepted.</p>
+
+      <div class="grid2">
+        <label class="field"><span>Company/organisation</span><input id="curEmployer" type="text"></label>
+        <label class="field"><span>Job title</span><input id="curJobTitle" type="text"></label>
+        <label class="field"><span>Start date</span><input id="curStart" type="date"></label>
+        <label class="field"><span>End date (if current, leave blank)</span><input id="curEnd" type="date"></label>
+      </div>
+
+      <label class="field">
+        <span>Responsibilities / tasks (within this role)</span>
+        <textarea id="curTasks" rows="3" placeholder="Example: Provide first aid at emergency incidents, perform CPR and use AEDs, assess and manage injured or unwell persons..."></textarea>
+      </label>
+
+      <h3>Employment – history (optional)</h3>
+      <div id="historyList"></div>
+      <button id="addHistoryBtn" class="secondary">Add role</button>
+      <div class="divider"></div>
+
+      <h3>How have you maintained your industry skills &amp; knowledge (past 12 months)</h3>
+      <p class="muted" style="margin-top: -6px;">
+        This can include workshops, conferences, short online courses, podcasts, professional memberships, real-life incident response, volunteering, observation activities, or other evidence of current practice.
+      </p>
+      <label class="field">
+        <textarea id="maintainSkillsText" rows="5" placeholder="Enter a short summary of your currency activities and how they relate to the unit/course."></textarea>
+      </label>
+    </section>
+
+    <!-- Block 1.2 -->
+    <section id="block12" class="hidden">
+      <div class="notice">
+        Additional employment detail is required for this industry context.
+      </div>
+
+      <h3>Mandatory high-risk employment context</h3>
+      <div class="grid2">
+        <label class="field"><span>Company name *</span><input id="hrCompany" type="text"></label>
+        <label class="field"><span>Job title *</span><input id="hrJobTitle" type="text"></label>
+        <label class="field"><span>Start date *</span><input id="hrStart" type="date"></label>
+        <label class="field"><span>End date (optional if current)</span><input id="hrEnd" type="date"></label>
+      </div>
+
+      <label class="field">
+        <span>Specific environment types *</span>
+        <input id="hrEnvTypes" type="text" placeholder="e.g., scaffolds, rooftops, tanks, tunnels...">
+      </label>
+
+      <label class="field">
+        <span>Specific tasks performed *</span>
+        <textarea id="hrTasks" rows="3" placeholder="Describe the tasks performed in this environment..."></textarea>
+      </label>
+
+      <label class="field">
+        <span>Site or project name (optional)</span>
+        <input id="hrSite" type="text">
+      </label>
+
+      <h3>Employment – history (optional)</h3>
+      <div id="historyList2"></div>
+      <button id="addHistoryBtn2" class="secondary">Add role</button>
+
+      <h3>Recent professional development (optional)</h3>
+      <p class="muted" style="margin-top: -6px;">
+        Include workshops, conferences, short courses, webinars, internal PD, podcasts, or similar — and how it relates to the unit/course.
+      </p>
+      <div id="pdList2"></div>
+      <button id="addPdBtn2" class="secondary">Add PD item</button>
+
+      <h3>Certificates / licences (optional)</h3>
+      <div id="certList2"></div>
+      <button id="addCertBtn2" class="secondary">Add certificate/licence</button>
+    </section>
+
+    <div class="divider"></div>
+
+    <div class="row">
+      <button id="generateBtn" class="primary" disabled>Generate</button>
+      <button id="regenBtn" class="secondary" disabled>Re-generate</button>
+    </div>
+
+    <div id="healthFollowup" class="card hidden">
+      <h3>Health practitioner details</h3>
+      <p class="muted">Workplace and start date are required before you can export.</p>
+      <div class="grid2">
+        <label class="field"><span>Workplace *</span><input id="hpWorkplace" type="text"></label>
+        <label class="field"><span>Start date *</span><input id="hpStartDate" type="date"></label>
+      </div>
+      <button id="hpApplyBtn" class="secondary">Apply and enhance</button>
+    </div>
+
+    <h3>Generated statement</h3>
+    <textarea
+      id="outputText"
+      class="output-box"
+      placeholder="Generated output appears here. You can self-edit."
+    ></textarea>
+
+    <div class="row">
+      <button id="copyBtn" class="primary" disabled>Copy</button>
+      <button id="copyResetBtn" class="ghost">Reset Form</button>
+      <button id="scoreBtn" class="secondary" disabled>Currency check</button>
+    </div>
+
+    <div id="scoreCard" class="card hidden">
+      <h3 style="margin: 0 0 6px 0;">Currency check</h3>
+      <p class="muted" style="margin: 0 0 10px 0;">
+        Guidance only. Always review and edit before submitting.
+      </p>
+      <div id="scoreResult"></div>
+    </div>
+
+    <p class="muted">Copy and paste into your trainer profile</p>
+
+    <div id="errorBox" class="error hidden"></div>
+    <div id="successBox" class="success hidden"></div>
+  </section>
+</main>
+
+<footer class="footer">
+  <span class="muted">
+    This generator does not store, retain or share any information entered. All data is automatically cleared once the session or browser window is closed.
+    Use of this tool is at your own discretion.
+  </span>
+</footer>
+
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+<script src="/app.js"></script>
+</body>
+</html>

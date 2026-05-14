@@ -1,0 +1,402 @@
+:root {
+  /* ===== Brand colours ===== */
+  --header: #2E4770;
+  --header2: #23395C;
+
+  --primary: #b9d40f;     /* main buttons */
+  --primary2: #9fb90d;    /* hover/darker */
+
+  --secondary: #f19a3e;   /* other buttons */
+  --secondary2: #d78520;  /* hover/darker */
+
+  /* ===== Base UI ===== */
+  --bg: #ffffff;
+  --panel: #ffffff;
+  --text: #1f2937;
+  --muted: #5f6b7a;
+
+  --danger: #dc2626;
+  --ok: #16a34a;
+
+  --border: rgba(0,0,0,0.18);
+
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 20px rgba(0,0,0,0.12);
+
+  --edit-font: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --edit-size: 15px;
+  --edit-line: 1.6;
+  --edit-color: #111827;
+
+  --input-border: rgba(0,0,0,0.25);
+  --input-border-strong: rgba(0,0,0,0.28);
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--edit-font);
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ===== Header ===== */
+.app-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 90px;
+  padding: 0 20px;
+  background: var(--header);
+  color: #fff;
+}
+
+h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.sub {
+  margin: 6px 0 0;
+  color: rgba(255,255,255,0.85);
+  font-size: 13px;
+}
+
+.pill {
+  padding: 8px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+
+.header-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.app-logo {
+  height: 60px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* ===== Layout ===== */
+.layout {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 18px;
+}
+
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+/* ===== Panels ===== */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+
+/* ===== Headings ===== */
+h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--header);
+}
+
+h3 {
+  margin: 20px 0 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--header);
+}
+
+/* ===== Typography ===== */
+.muted { color: var(--muted); font-size: 13px; }
+.subnote, .subhead { margin: -4px 0 12px; color: var(--muted); font-size: 12.5px; }
+.spacer { height: 12px; }
+.hidden { display: none !important; }
+
+/* ===== Grid helpers ===== */
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 900px) {
+  .grid2 { grid-template-columns: 1fr; }
+}
+
+/* ===== Fields ===== */
+.field {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.field span {
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.field-help {
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.field input,
+.field textarea,
+.output-box,
+input[type="date"] {
+  font-family: var(--edit-font);
+  font-size: var(--edit-size);
+  line-height: var(--edit-line);
+  color: var(--edit-color);
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--input-border);
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.field textarea { min-height: 120px; }
+
+.field input::placeholder,
+.field textarea::placeholder,
+.output-box::placeholder {
+  color: #6b7280;
+  opacity: 1;
+}
+
+.field input:focus,
+.field textarea:focus,
+.output-box:focus {
+  border-color: rgba(46,71,112,0.75);
+  box-shadow: 0 0 0 3px rgba(46,71,112,0.16);
+}
+
+/* ===== Buttons ===== */
+.row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 14px 0;
+  flex-wrap: wrap;
+}
+
+button {
+  appearance: none;
+  border: 1px solid rgba(0,0,0,0.18);
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  background: #fff;
+  color: var(--text);
+  transition: all 0.15s ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Primary (green) */
+button.primary {
+  background: var(--primary);
+  color: #1b1b1b;
+  border: none;
+}
+
+button.primary:hover:not(:disabled) {
+  background: var(--primary2);
+}
+
+/* Secondary / Other buttons (orange) */
+button.secondary {
+  background: var(--secondary);
+  border: none;
+  color: #1b1b1b;
+}
+
+button.secondary:hover:not(:disabled) {
+  background: var(--secondary2);
+}
+
+button.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ===== Cards / Dividers ===== */
+.card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.dynamic-row {
+  margin: 12px 0;
+}
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 16px 0;
+}
+
+.notice {
+  border-left: 4px solid var(--header);
+  background: rgba(46,71,112,0.08);
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin: 10px 0 14px;
+  color: #16233a;
+}
+
+/* ===== File Upload (Styled Choose File) ===== */
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.file-upload input[type="file"] {
+  /* hide native control but keep it accessible */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.file-upload {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.file-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  background: var(--primary);
+  color: #1b1b1b;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.file-upload:hover .file-btn {
+  background: var(--primary2);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.file-name {
+  font-size: 13px;
+}
+
+/* ===== Output Box ===== */
+.output-box {
+  width: 100%;
+  min-height: 300px;
+  resize: vertical;
+  padding: 18px;
+  margin-top: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--input-border-strong);
+  background: #fff;
+  box-shadow: var(--shadow);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* ===== Messages ===== */
+.error, .success {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13.5px;
+}
+
+.error {
+  background: rgba(220,38,38,0.08);
+  color: #7f1d1d;
+  border-left: 4px solid var(--danger);
+}
+
+.success {
+  background: rgba(22,163,74,0.08);
+  color: #14532d;
+  border-left: 4px solid var(--ok);
+}
+
+/* ===== Popup Notification ===== */
+.toast {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 50;
+  width: min(420px, calc(100vw - 36px));
+  padding: 14px 16px;
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.toast-success {
+  background: #14532d;
+  color: #fff;
+}
+
+.toast-error {
+  background: #7f1d1d;
+  color: #fff;
+}
+
+/* ===== Footer ===== */
+.footer {
+  padding: 12px 20px 20px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
