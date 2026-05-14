@@ -1,15 +1,17 @@
 const express = require("express");
 const path = require("path");
-
-const app = express();
-
 const multer = require("multer");
 const mammoth = require("mammoth");
 const pdfParse = require("pdf-parse");
 
+const app = express();
+
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024, files: 8 },
+  limits: {
+    fileSize: 10 * 1024 * 1024,
+    files: 8,
+  },
 });
 
 app.use(express.json({ limit: "10mb" }));
@@ -47,6 +49,14 @@ async function callOpenAI(input, instructions = "") {
   return data.output_text || data.output?.[0]?.content?.[0]?.text || "";
 }
 
+function safeJsonParse(text, fallback) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return fallback;
+  }
+}
+
 app.post("/api/classify", async (req, res) => {
   try {
     const { industry_unit_text, asked_clarify, clarify_answer } = req.body;
@@ -71,7 +81,13 @@ JSON shape:
 `
     );
 
-    res.json(JSON.parse(text));
+    res.json(
+      safeJsonParse(text, {
+        decision: "clarify",
+        clarify_question:
+          "Can you confirm whether this involves high-risk environments such as working at heights, confined spaces, mining, rooftops, scaffolds, tanks, tunnels, or EWPs?",
+      })
+    );
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message || "Routing failed." });
@@ -132,18 +148,100 @@ Score based on:
 `
     );
 
-    res.json(JSON.parse(text));
+    res.json(
+      safeJsonParse(text, {
+        overall_score: 0,
+        feedback: ["Currency Check could not parse the AI response."],
+      })
+    );
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message || "Currency Check failed." });
   }
 });
 
-app.post("/api/parse-uploads", async (req, res) => {
-  res.status(501).json({
-    error:
-      "File upload parsing is not connected yet. Generate can still work from typed answers.",
-  });
+app.post("/api/parse-uploads", upload.array("files"), async (req, res) => {
+  try {
+    const files = req.files || [];
+    const mode = req.body?.mode || "evidence";
+
+    if (!files.length) {
+      return res.status(400).json({ error: "No files uploaded." });
+    }
+
+    const extractedParts = [];
+
+    for (const file of files) {
+      const name = file.originalname || "uploaded file";
+      const type = file.mimetype || "";
+      const lowerName = name.toLowerCase();
+
+      let text = "";
+
+      if (type.includes("text") || lowerName.endsWith(".txt")) {
+        text = file.buffer.toString("utf8");
+      } else if (type.includes("pdf") || lowerName.endsWith(".pdf")) {
+        const parsed = await pdfParse(file.buffer);
+        text = parsed.text || "";
+      } else if (
+        type.includes("wordprocessingml") ||
+        lowerName.endsWith(".docx")
+      ) {
+        const parsed = await mammoth.extractRawText({ buffer: file.buffer });
+        text = parsed.value || "";
+      } else {
+        extractedParts.push(
+          `FILE: ${name}\nUnsupported file type. Upload TXT, PDF, or DOCX.`
+        );
+        continue;
+      }
+
+      extractedParts.push(`FILE: ${name}\n${text.trim()}`);
+    }
+
+    const evidenceText = extractedParts.join("\n\n").trim();
+
+    let parsedResume = null;
+
+    if (mode === "resume" && evidenceText) {
+      const parsedText = await callOpenAI(
+        evidenceText,
+        `
+Extract resume/CV information as valid JSON only.
+
+Return:
+{
+  "employment": [
+    {
+      "company": "",
+      "job_title": "",
+      "start_date": "",
+      "end_date": "",
+      "responsibilities": []
+    }
+  ]
+}
+
+Use only information in the resume.
+If unsure, leave fields blank.
+`
+      );
+
+      parsedResume = safeJsonParse(parsedText, null);
+    }
+
+    res.json({
+      evidence_text: evidenceText,
+      parsed: parsedResume,
+      characters: evidenceText.length,
+      files_processed: files.length,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: error.message || "Upload parsing failed.",
+    });
+  }
 });
 
 app.get("*", (req, res) => {
