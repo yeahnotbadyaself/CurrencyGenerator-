@@ -6,6 +6,24 @@ const pdfParse = require("pdf-parse");
 
 const app = express();
 
+// The health probe returns no application data. Every other request requires signed Access identity.
+app.use(async (req, res, next) => {
+  if (req.method === 'GET' && req.path === '/api/health') return res.json({ status: 'ok' })
+  try {
+    const { verifyCloudflareAccess, consumeAccessQuota } = await import('./security/cloudflare-access.mjs')
+    const identity = await verifyCloudflareAccess(req.headers['cf-access-jwt-assertion'])
+    if (!identity) return res.set('Cache-Control', 'no-store').status(403).json({ error: 'Forbidden' })
+    if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+      const retryAfter = consumeAccessQuota(identity.sub)
+      if (retryAfter) return res.set('Cache-Control', 'no-store').set('Retry-After', String(retryAfter)).status(429).json({ error: 'Request limit reached' })
+    }
+    return next()
+  } catch {
+    return res.set('Cache-Control', 'no-store').status(403).json({ error: 'Forbidden' })
+  }
+})
+
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
